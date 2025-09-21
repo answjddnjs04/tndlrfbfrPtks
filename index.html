@@ -1,0 +1,564 @@
+document.getElementById('dataCollectionCost').value = 2000000;
+                document.getElementById('dataMaintenanceCost').value = 500000;
+                document.getElementById('dataStorageCost').value = 10000;            // 데이터 관련 비용 계산
+            const dataUnits = Math.ceil(dataCount / 10000); // 1만개 단위로 계산
+            const totalDataCollectionCost = dataUnits * dataCollectionCost; // 초기 수집비 (월별로 분할하지 않음)
+            const totalDataMaintenanceCost = dataUnits * dataMaintenanceCost; // 월 관리비
+            const totalDataStorageCost = dataUnits * dataStorageCost; // 월 저장비
+            const monthlyDataCost = totalDataMaintenanceCost + totalDataStorageCost; // 월별 데이터 비용<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수익률 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .results {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #e8ecf4;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e8ecf4;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .user-scenarios {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .scenario-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e8ecf4;
+        }
+
+        .results-table th {
+            background: #f8f9ff;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .results-table tr:hover {
+            background: #f8f9ff;
+        }
+
+        .profit {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .loss {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .chart-container {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .chart-label {
+            width: 100px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .chart-progress {
+            flex: 1;
+            height: 25px;
+            background: #e8ecf4;
+            border-radius: 12px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .chart-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .chart-value {
+            width: 100px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .revenue-fill { background: #27ae60; }
+        .cost-fill { background: #e74c3c; }
+        .profit-fill { background: #667eea; }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .user-scenarios {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 수익률 계산기</h1>
+            <p>데이트 코스 플래너 서비스 수익성 분석</p>
+        </div>
+
+        <div class="main-content">
+            <div class="controls">
+                <div class="section">
+                    <h3>사용자 규모</h3>
+                    <div class="user-scenarios">
+                        <button class="scenario-btn active" onclick="setScenario(1000)">1천명</button>
+                        <button class="scenario-btn" onclick="setScenario(10000)">1만명</button>
+                        <button class="scenario-btn" onclick="setScenario(100000)">10만명</button>
+                    </div>
+                    <div class="form-group">
+                        <label>총 사용자 수</label>
+                        <input type="number" id="totalUsers" value="1000" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>사용 패턴</h3>
+                    <div class="form-group">
+                        <label>활성 사용자 비율 (%)</label>
+                        <input type="number" id="activeUserRate" value="30" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>월평균 코스 생성 (1인당)</label>
+                        <input type="number" id="coursesPerUser" value="2" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>코스당 카카오맵 검색 횟수</label>
+                        <input type="number" id="kakaoSearchPerCourse" value="20" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>구독 모델</h3>
+                    <div class="form-group">
+                        <label>전체 구독률 (%)</label>
+                        <input type="number" id="subscriptionRate" value="5" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>베이직 요금 (원)</label>
+                        <input type="number" id="basicPrice" value="2900" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>프리미엄 요금 (원)</label>
+                        <input type="number" id="premiumPrice" value="4900" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>베이직 비율 (%)</label>
+                        <input type="number" id="basicRatio" value="70" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>API 비용</h3>
+                    <div class="form-group">
+                        <label>Gemini API (1회당 원)</label>
+                        <input type="number" id="geminiCost" value="10" step="0.1" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>카카오맵 API (1회당 원)</label>
+                        <input type="number" id="kakaoCost" value="0.5" step="0.1" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>인프라 비용</h3>
+                    <div class="form-group">
+                        <label>Supabase (월 원)</label>
+                        <input type="number" id="supabaseCost" value="34000" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>Vercel (월 원)</label>
+                        <input type="number" id="vercelCost" value="27000" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>감정 데이터</h3>
+                    <div class="form-group">
+                        <label>데이터 개수</label>
+                        <input type="number" id="dataCount" value="10000" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>데이터 1만개당 수집비 (원)</label>
+                        <input type="number" id="dataCollectionCost" value="2000000" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>데이터 1만개당 월관리비 (원)</label>
+                        <input type="number" id="dataMaintenanceCost" value="500000" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>데이터 저장비 (1만개당 월 원)</label>
+                        <input type="number" id="dataStorageCost" value="10000" oninput="calculate()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="results">
+                <h3>📊 수익성 분석 결과</h3>
+                
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>항목</th>
+                            <th>계산</th>
+                            <th>월 금액 (원)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>📈 수익</strong></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>베이직 구독</td>
+                            <td id="basicCalc">-</td>
+                            <td id="basicRevenue">-</td>
+                        </tr>
+                        <tr>
+                            <td>프리미엄 구독</td>
+                            <td id="premiumCalc">-</td>
+                            <td id="premiumRevenue">-</td>
+                        </tr>
+                        <tr style="background: #e8f5e8;">
+                            <td><strong>총 수익</strong></td>
+                            <td></td>
+                            <td id="totalRevenue" class="profit"><strong>-</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>💸 비용</strong></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Gemini API</td>
+                            <td id="geminiCalc">-</td>
+                            <td id="geminiTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td>카카오맵 API</td>
+                            <td id="kakaoCalc">-</td>
+                            <td id="kakaoTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td>Supabase</td>
+                            <td>-</td>
+                            <td id="supabaseTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td>Vercel</td>
+                            <td>-</td>
+                            <td id="vercelTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td>데이터 수집비 (초기)</td>
+                            <td id="dataCollectionCalc">-</td>
+                            <td id="dataCollectionTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td>데이터 관리비</td>
+                            <td id="dataMaintenanceCalc">-</td>
+                            <td id="dataMaintenanceTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td>데이터 저장비</td>
+                            <td id="dataStorageCalc">-</td>
+                            <td id="dataStorageTotal">-</td>
+                        </tr>
+                        <tr style="background: #ffeaea;">
+                            <td><strong>총 비용</strong></td>
+                            <td></td>
+                            <td id="totalCost" class="loss"><strong>-</strong></td>
+                        </tr>
+                        <tr style="background: #f8f9ff;">
+                            <td><strong>💰 순손익</strong></td>
+                            <td></td>
+                            <td id="netProfit"><strong>-</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="chart-container">
+                    <h4 style="margin-bottom: 15px; color: #667eea;">💹 수익성 차트</h4>
+                    <div class="chart-bar">
+                        <div class="chart-label">수익</div>
+                        <div class="chart-progress">
+                            <div class="chart-fill revenue-fill" id="revenueBar"></div>
+                        </div>
+                        <div class="chart-value" id="revenueValue">0원</div>
+                    </div>
+                    <div class="chart-bar">
+                        <div class="chart-label">비용</div>
+                        <div class="chart-progress">
+                            <div class="chart-fill cost-fill" id="costBar"></div>
+                        </div>
+                        <div class="chart-value" id="costValue">0원</div>
+                    </div>
+                    <div class="chart-bar">
+                        <div class="chart-label">순손익</div>
+                        <div class="chart-progress">
+                            <div class="chart-fill profit-fill" id="profitBar"></div>
+                        </div>
+                        <div class="chart-value" id="profitValue">0원</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatNumber(num) {
+            return Math.round(num).toLocaleString();
+        }
+
+        function setScenario(users) {
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('totalUsers').value = users;
+            
+            // 사용자 규모에 따른 기본값 조정
+            if (users === 1000) {
+                document.getElementById('activeUserRate').value = 30;
+                document.getElementById('subscriptionRate').value = 5;
+                document.getElementById('supabaseCost').value = 0;
+                document.getElementById('vercelCost').value = 0;
+            } else if (users === 10000) {
+                document.getElementById('activeUserRate').value = 35;
+                document.getElementById('subscriptionRate').value = 8;
+                document.getElementById('supabaseCost').value = 34000;
+                document.getElementById('vercelCost').value = 40000;
+                document.getElementById('dataCollectionCost').value = 2000000;
+                document.getElementById('dataMaintenanceCost').value = 500000;
+                document.getElementById('dataStorageCost').value = 10000;
+            } else if (users === 100000) {
+                document.getElementById('activeUserRate').value = 40;
+                document.getElementById('subscriptionRate').value = 10;
+                document.getElementById('supabaseCost').value = 800000;
+                document.getElementById('vercelCost').value = 1000000;
+                document.getElementById('dataCollectionCost').value = 1500000;
+                document.getElementById('dataMaintenanceCost').value = 400000;
+                document.getElementById('dataStorageCost').value = 8000;
+            }
+            
+            calculate();
+        }
+
+        function calculate() {
+            // 입력값 가져오기
+            const totalUsers = parseInt(document.getElementById('totalUsers').value) || 0;
+            const activeUserRate = parseFloat(document.getElementById('activeUserRate').value) || 0;
+            const coursesPerUser = parseFloat(document.getElementById('coursesPerUser').value) || 0;
+            const kakaoSearchPerCourse = parseInt(document.getElementById('kakaoSearchPerCourse').value) || 0;
+            const subscriptionRate = parseFloat(document.getElementById('subscriptionRate').value) || 0;
+            const basicPrice = parseInt(document.getElementById('basicPrice').value) || 0;
+            const premiumPrice = parseInt(document.getElementById('premiumPrice').value) || 0;
+            const basicRatio = parseFloat(document.getElementById('basicRatio').value) || 0;
+            const geminiCost = parseFloat(document.getElementById('geminiCost').value) || 0;
+            const kakaoCost = parseFloat(document.getElementById('kakaoCost').value) || 0;
+            const supabaseCost = parseInt(document.getElementById('supabaseCost').value) || 0;
+            const vercelCost = parseInt(document.getElementById('vercelCost').value) || 0;
+            const dataCount = parseInt(document.getElementById('dataCount').value) || 0;
+
+            // 계산
+            const activeUsers = totalUsers * (activeUserRate / 100);
+            const totalCourses = activeUsers * coursesPerUser;
+            const totalKakaoSearches = totalCourses * kakaoSearchPerCourse;
+            
+            const totalSubscribers = totalUsers * (subscriptionRate / 100);
+            const basicSubscribers = totalSubscribers * (basicRatio / 100);
+            const premiumSubscribers = totalSubscribers * ((100 - basicRatio) / 100);
+            
+            // 수익 계산
+            const basicRevenue = basicSubscribers * basicPrice;
+            const premiumRevenue = premiumSubscribers * premiumPrice;
+            const totalRevenue = basicRevenue + premiumRevenue;
+            
+            // 비용 계산
+            const geminiTotal = totalCourses * geminiCost;
+            const kakaoTotal = totalKakaoSearches * kakaoCost;
+            const totalCost = geminiTotal + kakaoTotal + supabaseCost + vercelCost + monthlyDataCost;
+            
+            // 순손익
+            const netProfit = totalRevenue - totalCost;
+            
+            // 결과 표시
+            document.getElementById('basicCalc').textContent = `${formatNumber(basicSubscribers)}명 × ${formatNumber(basicPrice)}원`;
+            document.getElementById('basicRevenue').textContent = formatNumber(basicRevenue);
+            
+            document.getElementById('premiumCalc').textContent = `${formatNumber(premiumSubscribers)}명 × ${formatNumber(premiumPrice)}원`;
+            document.getElementById('premiumRevenue').textContent = formatNumber(premiumRevenue);
+            
+            document.getElementById('totalRevenue').textContent = formatNumber(totalRevenue);
+            
+            document.getElementById('geminiCalc').textContent = `${formatNumber(totalCourses)}회 × ${geminiCost}원`;
+            document.getElementById('geminiTotal').textContent = formatNumber(geminiTotal);
+            
+            document.getElementById('kakaoCalc').textContent = `${formatNumber(totalKakaoSearches)}회 × ${kakaoCost}원`;
+            document.getElementById('kakaoTotal').textContent = formatNumber(kakaoTotal);
+            
+            document.getElementById('supabaseTotal').textContent = formatNumber(supabaseCost);
+            document.getElementById('vercelTotal').textContent = formatNumber(vercelCost);
+            
+            document.getElementById('dataCollectionCalc').textContent = `${dataUnits}단위 × ${formatNumber(dataCollectionCost)}원`;
+            document.getElementById('dataCollectionTotal').textContent = formatNumber(totalDataCollectionCost);
+            
+            document.getElementById('dataMaintenanceCalc').textContent = `${dataUnits}단위 × ${formatNumber(dataMaintenanceCost)}원`;
+            document.getElementById('dataMaintenanceTotal').textContent = formatNumber(totalDataMaintenanceCost);
+            
+            document.getElementById('dataStorageCalc').textContent = `${dataUnits}단위 × ${formatNumber(dataStorageCost)}원`;
+            document.getElementById('dataStorageTotal').textContent = formatNumber(totalDataStorageCost);
+            
+            document.getElementById('totalCost').textContent = formatNumber(totalCost);
+            
+            const netProfitElement = document.getElementById('netProfit');
+            netProfitElement.textContent = formatNumber(netProfit);
+            netProfitElement.className = netProfit >= 0 ? 'profit' : 'loss';
+            
+            // 차트 업데이트
+            const maxValue = Math.max(totalRevenue, totalCost, Math.abs(netProfit));
+            
+            document.getElementById('revenueBar').style.width = `${(totalRevenue / maxValue) * 100}%`;
+            document.getElementById('revenueValue').textContent = formatNumber(totalRevenue) + '원';
+            
+            document.getElementById('costBar').style.width = `${(totalCost / maxValue) * 100}%`;
+            document.getElementById('costValue').textContent = formatNumber(totalCost) + '원';
+            
+            document.getElementById('profitBar').style.width = `${(Math.abs(netProfit) / maxValue) * 100}%`;
+            document.getElementById('profitValue').textContent = formatNumber(netProfit) + '원';
+            
+            // 순손익 바 색상 변경
+            const profitBar = document.getElementById('profitBar');
+            profitBar.className = netProfit >= 0 ? 'chart-fill profit-fill' : 'chart-fill cost-fill';
+        }
+
+        // 초기 계산
+        calculate();
+    </script>
+</body>
+</html>
