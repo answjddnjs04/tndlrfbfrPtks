@@ -1,11 +1,4 @@
-document.getElementById('dataCollectionCost').value = 2000000;
-                document.getElementById('dataMaintenanceCost').value = 500000;
-                document.getElementById('dataStorageCost').value = 10000;            // 데이터 관련 비용 계산
-            const dataUnits = Math.ceil(dataCount / 10000); // 1만개 단위로 계산
-            const totalDataCollectionCost = dataUnits * dataCollectionCost; // 초기 수집비 (월별로 분할하지 않음)
-            const totalDataMaintenanceCost = dataUnits * dataMaintenanceCost; // 월 관리비
-            const totalDataStorageCost = dataUnits * dataStorageCost; // 월 저장비
-            const monthlyDataCost = totalDataMaintenanceCost + totalDataStorageCost; // 월별 데이터 비용<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -304,16 +297,8 @@ document.getElementById('dataCollectionCost').value = 2000000;
                         <input type="number" id="dataCount" value="10000" oninput="calculate()">
                     </div>
                     <div class="form-group">
-                        <label>데이터 1만개당 수집비 (원)</label>
-                        <input type="number" id="dataCollectionCost" value="2000000" oninput="calculate()">
-                    </div>
-                    <div class="form-group">
-                        <label>데이터 1만개당 월관리비 (원)</label>
-                        <input type="number" id="dataMaintenanceCost" value="500000" oninput="calculate()">
-                    </div>
-                    <div class="form-group">
-                        <label>데이터 저장비 (1만개당 월 원)</label>
-                        <input type="number" id="dataStorageCost" value="10000" oninput="calculate()">
+                        <label>데이터 관리비 (월 원)</label>
+                        <input type="number" id="dataManagementCost" value="1500000" oninput="calculate()">
                     </div>
                 </div>
             </div>
@@ -376,19 +361,9 @@ document.getElementById('dataCollectionCost').value = 2000000;
                             <td id="vercelTotal">-</td>
                         </tr>
                         <tr>
-                            <td>데이터 수집비 (초기)</td>
-                            <td id="dataCollectionCalc">-</td>
-                            <td id="dataCollectionTotal">-</td>
-                        </tr>
-                        <tr>
-                            <td>데이터 관리비</td>
-                            <td id="dataMaintenanceCalc">-</td>
-                            <td id="dataMaintenanceTotal">-</td>
-                        </tr>
-                        <tr>
-                            <td>데이터 저장비</td>
-                            <td id="dataStorageCalc">-</td>
-                            <td id="dataStorageTotal">-</td>
+                            <td>데이터 관리</td>
+                            <td>-</td>
+                            <td id="dataTotal">-</td>
                         </tr>
                         <tr style="background: #ffeaea;">
                             <td><strong>총 비용</strong></td>
@@ -453,17 +428,11 @@ document.getElementById('dataCollectionCost').value = 2000000;
                 document.getElementById('subscriptionRate').value = 8;
                 document.getElementById('supabaseCost').value = 34000;
                 document.getElementById('vercelCost').value = 40000;
-                document.getElementById('dataCollectionCost').value = 2000000;
-                document.getElementById('dataMaintenanceCost').value = 500000;
-                document.getElementById('dataStorageCost').value = 10000;
             } else if (users === 100000) {
                 document.getElementById('activeUserRate').value = 40;
                 document.getElementById('subscriptionRate').value = 10;
                 document.getElementById('supabaseCost').value = 800000;
                 document.getElementById('vercelCost').value = 1000000;
-                document.getElementById('dataCollectionCost').value = 1500000;
-                document.getElementById('dataMaintenanceCost').value = 400000;
-                document.getElementById('dataStorageCost').value = 8000;
             }
             
             calculate();
@@ -483,7 +452,7 @@ document.getElementById('dataCollectionCost').value = 2000000;
             const kakaoCost = parseFloat(document.getElementById('kakaoCost').value) || 0;
             const supabaseCost = parseInt(document.getElementById('supabaseCost').value) || 0;
             const vercelCost = parseInt(document.getElementById('vercelCost').value) || 0;
-            const dataCount = parseInt(document.getElementById('dataCount').value) || 0;
+            const dataManagementCost = parseInt(document.getElementById('dataManagementCost').value) || 0;
 
             // 계산
             const activeUsers = totalUsers * (activeUserRate / 100);
@@ -502,7 +471,7 @@ document.getElementById('dataCollectionCost').value = 2000000;
             // 비용 계산
             const geminiTotal = totalCourses * geminiCost;
             const kakaoTotal = totalKakaoSearches * kakaoCost;
-            const totalCost = geminiTotal + kakaoTotal + supabaseCost + vercelCost + monthlyDataCost;
+            const totalCost = geminiTotal + kakaoTotal + supabaseCost + vercelCost + dataManagementCost;
             
             // 순손익
             const netProfit = totalRevenue - totalCost;
@@ -524,16 +493,7 @@ document.getElementById('dataCollectionCost').value = 2000000;
             
             document.getElementById('supabaseTotal').textContent = formatNumber(supabaseCost);
             document.getElementById('vercelTotal').textContent = formatNumber(vercelCost);
-            
-            document.getElementById('dataCollectionCalc').textContent = `${dataUnits}단위 × ${formatNumber(dataCollectionCost)}원`;
-            document.getElementById('dataCollectionTotal').textContent = formatNumber(totalDataCollectionCost);
-            
-            document.getElementById('dataMaintenanceCalc').textContent = `${dataUnits}단위 × ${formatNumber(dataMaintenanceCost)}원`;
-            document.getElementById('dataMaintenanceTotal').textContent = formatNumber(totalDataMaintenanceCost);
-            
-            document.getElementById('dataStorageCalc').textContent = `${dataUnits}단위 × ${formatNumber(dataStorageCost)}원`;
-            document.getElementById('dataStorageTotal').textContent = formatNumber(totalDataStorageCost);
-            
+            document.getElementById('dataTotal').textContent = formatNumber(dataManagementCost);
             document.getElementById('totalCost').textContent = formatNumber(totalCost);
             
             const netProfitElement = document.getElementById('netProfit');
